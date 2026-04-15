@@ -44,6 +44,24 @@ pipeline {
                 }
             }
         }
+        stage('K8s ECR Secret') {
+            steps {
+                script {
+                    sh """
+                        export KUBECONFIG=/var/lib/jenkins/.kube/config
+
+                        TOKEN=\$(aws ecr get-login-password --region ${AWS_REGION})
+
+                        kubectl create secret docker-registry ecr-pull-secret \
+                        --docker-server=${ECR_REGISTRY} \
+                        --docker-username=AWS \
+                        --docker-password=\$TOKEN \
+                        --namespace ${K8S_NAMESPACE} \
+                        --dry-run=client -o yaml | kubectl apply -f -
+                    """
+                }
+            }
+        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
