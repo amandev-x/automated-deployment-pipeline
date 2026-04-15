@@ -119,6 +119,7 @@ cd terraform
  
 # Copy and fill in your values
 cp terraform.tfvars.example terraform.tfvars
+Update the terraform.tfvars file with your own ip address and ssh-key-pair file.
  
 terraform init
 terraform plan
@@ -139,7 +140,9 @@ cd ansible
  
 # Fill in the two IPs from terraform output
 vim inventory.ini
- 
+
+Add the jenkins and k3s public ip address in inventory.ini file
+
 ansible-playbook -i inventory.ini playbook.yml
 ```
  
