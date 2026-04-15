@@ -16,7 +16,7 @@ A production-style CI/CD pipeline that provisions infrastructure, configures ser
  
 ## Architecture
 
-![Architecture Diagram](./assets/Gemini_Generated_Image_vz8by4vz8by4vz8b.png)
+![Architecture Diagram](./assets/architecture.png)
 
 ---
  
@@ -223,7 +223,7 @@ terraform destroy
  
 This removes all AWS resources — both EC2 instances, security groups, and IAM roles.
 
-## Screnshots
+## Screenshots
 
 ### Pipeline Success
 
