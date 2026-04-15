@@ -25,9 +25,9 @@ resource "aws_iam_instance_profile" "jenkins_profile" {
   role = aws_iam_role.jenkins-ec2-role.name
 }
 
-# Kinds EC2 instance IAM role
-resource "aws_iam_role" "kinds_ec2_role" {
-  name = var.kinds_iam_role_name
+# K3s EC2 instance IAM role
+resource "aws_iam_role" "k3s_ec2_role" {
+  name = var.k3s_iam_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -44,11 +44,11 @@ resource "aws_iam_role" "kinds_ec2_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "attach_ecr_read_only" {
-  role       = aws_iam_role.kinds_ec2_role.name
+  role       = aws_iam_role.k3s_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-resource "aws_iam_instance_profile" "kinds_profile" {
-  name = "${var.kinds_iam_role_name}-kinds-profile"
-  role = aws_iam_role.kinds_ec2_role.name
+resource "aws_iam_instance_profile" "k3s_profile" {
+  name = "${var.k3s_iam_role_name}-k3s-profile"
+  role = aws_iam_role.k3s_ec2_role.name
 }

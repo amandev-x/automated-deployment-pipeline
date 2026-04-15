@@ -32,17 +32,17 @@ resource "aws_instance" "jenkins" {
 
 }
 
-# Kinds EC2 instance
-resource "aws_instance" "kinds" {
+# K3s EC2 instance
+resource "aws_instance" "k3s" {
   ami                         = data.aws_ami.ubuntu_ami.id
-  instance_type               = var.kinds_instance_type
+  instance_type               = var.k3s_instance_type
   subnet_id                   = aws_subnet.public_subnet.id
-  vpc_security_group_ids      = [aws_security_group.kinds_sg.id]
+  vpc_security_group_ids      = [aws_security_group.k3s_sg.id]
   associate_public_ip_address = true
   key_name                    = var.key_pair_name
-  iam_instance_profile        = aws_iam_instance_profile.kinds_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.k3s_profile.name
   tags = merge(local.common, {
-    Name = "${var.project_name}-kinds"
+    Name = "${var.project_name}-k3s"
   })
 
   root_block_device {

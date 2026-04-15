@@ -45,11 +45,6 @@ variable "own_ip" {
   type        = string
 }
 
-# variable "subnet_id" {
-#   description = "Subnet ID for Jenkins EC2 instance"
-#   type        = string
-# }
-
 variable "key_pair_name" {
   description = "Key pair name"
   type        = string
@@ -61,20 +56,14 @@ variable "iam_role_name" {
   default     = "jenkins-ec2-role"
 }
 
-variable "kinds_instance_type" {
-  description = "Kinds instance type"
+variable "k3s_instance_type" {
+  description = "K3s instance type"
   type        = string
   default     = "t3.small"
 }
 
-variable "kinds_iam_role_name" {
-  description = "Kinds iam role name"
+variable "k3s_iam_role_name" {
+  description = "K3s iam role name"
   type        = string
-  default     = "kinds-ec2-role"
+  default     = "k3s-ec2-role"
 }
-
-# variable "vpc_id" {
-#   description = "VPC Id"
-#   type        = string
-
-# }
