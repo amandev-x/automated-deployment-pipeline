@@ -102,5 +102,13 @@ pipeline {
                 docker rmi ${IMAGE_NAME}:latest || true
             """
         }
+
+        success {
+            echo "✅ Deployment successful: ${IMAGE_NAME}:${IMAGE_TAG} deployed"
+        }
+
+        failure {
+            echo "❌ Deployment failed: Check logs for details"
+        }
     }
 }
