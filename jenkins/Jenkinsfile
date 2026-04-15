@@ -1,0 +1,106 @@
+pipeline {
+    agent any 
+
+    environment {
+        AWS_REGION = "ap-south-1"
+        AWS_ACCOUNT_ID = "066606187609"
+        ECR_REPOSITORY = "fastapi-app"
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        IMAGE_NAME = "${ECR_REGISTRY}/${ECR_REPOSITORY}"
+        IMAGE_TAG = "${env.GIT_COMMIT[0..6]}"
+        HELM_RELEASE = "fastapi-app"
+        HELM_CHART = "./helm/fastapi-app"
+        K8S_NAMESPACE = "default"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm 
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh """
+                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ./app
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    """
+                }
+            }
+        }
+        stage('Push to ECR') {
+            steps {
+                script {
+                    echo "Pushing Docker image to ECR"
+                    sh """
+                        aws ecr get-login-password --region ${AWS_REGION} \ 
+                        | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                    """
+                    sh """
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:latest
+                    """
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh """
+                        export KUBECONFIG=/var/lib/jenkins/.kube/config
+
+                        helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                        --namespace ${K8S_NAMESPACE} \
+                        --set image.repository=${IMAGE_NAME} \
+                        --set image.tag=${IMAGE_TAG} \
+                        --set env.APP_VERSION=${IMAGE_TAG} \
+                        --wait --timeout 300s
+                    """
+                }
+            }
+        }
+        stage('Post-Deployment Verification') {
+            steps {
+                script {
+                    sh """
+                        export KUBECONFIG=/var/lib/jenkins/.kube/config
+
+                        kubectl rollout status deployment/${HELM_RELEASE}-fastapi \
+                         -n ${K8S_NAMESPACE} --timeout=60s
+
+                        // Port Forward 
+                        kubectl port-forward svc/${HELM_RELEASE}-fastapi-svc 8888:80 \
+                        -n ${K8S_NAMESPACE} &
+
+                        PF_PID=\$!
+
+                        sleep 5
+
+                        HTTP_STATUS=\$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8888/health)
+
+                        kill \$PF_PID
+
+                        if [ "\$HTTP_STATUS" = "200" ]; then 
+                            echo "Health check passed: Application is running successfully."
+                            
+                        else
+                            echo "Health check failed: HTTP status code \$HTTP_STATUS"
+                            exit 1
+                        fi
+                        """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh """
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true 
+                docker rmi ${IMAGE_NAME}:latest || true
+            """
+        }
+    }
+}
