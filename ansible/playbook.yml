@@ -1,0 +1,78 @@
+---
+
+- name: Configure Jenkins server
+  hosts: jenkins 
+  become: true 
+  gather_facts: true
+
+  roles:
+    - jenkins 
+    - docker
+
+  post_tasks:
+    - name: Add jenkins user to docker group
+      user: 
+        name: jenkins
+        groups: docker
+        append: true 
+
+    - name: Restart Jenkins to apply group change
+      service:
+        name: jenkins
+        state: restarted
+
+    - name: Install kubectl on jenkins server
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+        chmod +x kubectl
+        mv kubectl /usr/local/bin/kubectl
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Install helm on jenkins server
+      shell: |
+        curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+        echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+        sudo apt-get update
+        sudo apt-get install helm
+
+# K3s cluster runs first so that we can copy the kubeconfig to Jenkins server and use it in our Jenkins pipeline for deploying to the cluster.
+- name: Install and configure K3s cluster
+  hosts: k3s
+  become: true 
+  gather_facts: true 
+
+  roles:
+    - k3s
+
+- name: Copy k3s kubeconfig to Jenkins server
+  hosts: jenkins
+  become: true 
+  gather_facts: true 
+
+  tasks:
+    - name: Fetch kubeconfig from k3s server
+      fetch:
+        src: /tmp/k3s-kubeconfig.yaml
+        dest: /tmp/k3s-kubeconfig.yaml
+        flat: true 
+      delegate_to: "{{ groups['k3s'][0] }}"
+
+    - name: Create .kube directory for jenkins user
+      file:
+        path: /var/lib/jenkins/.kube
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+
+    - name: Copy kubeconfig to jenkins server
+      copy:
+        src: /tmp/k3s-kubeconfig.yaml
+        dest: /var/lib/jenkins/.kube/config
+        owner: jenkins
+        group: jenkins
+        mode: '0600'
+  

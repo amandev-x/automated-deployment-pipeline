@@ -1,0 +1,53 @@
+---
+
+# - name: Install kubectl on kind server
+#   shell: |
+#         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+#         echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+#         chmod +x kubectl
+#         mv kubectl /usr/local/bin/kubectl
+#   args:
+#         creates: /usr/local/bin/kubectl
+
+# - name: Check if kind already installed
+#   stat:
+#     path: /usr/local/bin/kind
+#   register: kind_stat
+
+- name: Install k3s
+  shell: |
+    curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Wait for k3s to be ready
+  wait_for:
+    path: /etc/rancher/k3s/k3s.yaml
+    state: present
+    timeout: 300
+  
+- name: Verify k3s node is ready
+  shell: k3s kubectl get nodes
+  register: k3s_status
+  retries: 10
+  delay: 8
+  until: "'Ready' in k3s_status.stdout"
+
+- name: Read k3s kubeconfig
+  slurp:
+    src: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig
+
+- name: Decode and fix server IP in kubeconfig
+  set_fact:
+    kubeconfig_content:
+      "{{ k3s_kubeconfig.content | b64decode | replace('127.0.0.1',ansible_default_ipv4.address) }}"
+
+- name: Write corrected kubeconfig to temp location
+  copy:
+    content: "{{ kubeconfig_content }}"
+    dest: /tmp/k3s-kubeconfig.yaml
+    mode: '0600'
+    
+  
