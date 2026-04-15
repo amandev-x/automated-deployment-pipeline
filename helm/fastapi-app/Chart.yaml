@@ -1,0 +1,7 @@
+apiVersion: v2
+name: fastapi-app
+description: FastAPI application deployed via Jenkins CI/CD pipeline
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

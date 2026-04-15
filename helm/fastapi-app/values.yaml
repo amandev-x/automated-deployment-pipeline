@@ -1,0 +1,40 @@
+# Default values. Jenkins will override these values during deployment.
+
+replicaCount: 2
+
+image: 
+  repository: ""   # Jenkins will set this to the built image in ECR
+  tag: "" # Jenkins will set this to the image tag (e.g., git commit hash)
+  pullPolicy: Always 
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
+env:
+  APP_VERSION: "1.0.0"   # Jenkins overrides this with git tag
+  ENVIRONMENT: "production"
+
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 15
+
+readinessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  
