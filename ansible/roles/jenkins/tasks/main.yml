@@ -25,3 +25,10 @@
     name: jenkins
     state: started 
     enabled: true 
+
+- name: Install AWS CLI(Dependency)
+  apt:
+    name: awscli
+    state: present
+
+
