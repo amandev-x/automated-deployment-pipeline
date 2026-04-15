@@ -1,20 +1,4 @@
 ---
-
-# - name: Install kubectl on kind server
-#   shell: |
-#         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-#         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-#         echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
-#         chmod +x kubectl
-#         mv kubectl /usr/local/bin/kubectl
-#   args:
-#         creates: /usr/local/bin/kubectl
-
-# - name: Check if kind already installed
-#   stat:
-#     path: /usr/local/bin/kind
-#   register: kind_stat
-
 - name: Install k3s
   shell: |
     curl -sfL https://get.k3s.io | sh -
