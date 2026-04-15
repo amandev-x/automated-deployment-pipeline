@@ -15,8 +15,9 @@ spec:
       labels:
         app: {{ .Release.Name }}-fastapi
         version: {{ .Values.image.tag | quote }}
-  spec:
-    containers:
+        
+    spec:
+      containers:
         - name: fastapi-container
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
