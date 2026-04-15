@@ -35,8 +35,7 @@ pipeline {
                 script {
                     echo "Pushing Docker image to ECR"
                     sh """
-                        aws ecr get-login-password --region ${AWS_REGION} \|
-                        docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
                     """
                     sh """
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
