@@ -44,12 +44,17 @@ automated-deployment-pipeline/
 │   ├── main.py
 │   ├── requirements.txt
 │   └── Dockerfile
+│   └── .dockerignore
 │
 ├── terraform/                    # AWS infrastructure
-│   ├── main.tf                   # EC2, security groups, IAM
-│   ├── variables.tf
-│   ├── outputs.tf
-│   └── terraform.tfvars          # gitignored — your values go here
+|    ├── compute.tf
+|    ├── main.tf                   
+|    ├── outputs.tf                
+|    ├── policy.tf                 # IAM Policy for Jenkins and K3s instance
+|    ├── security_group.tf         # Security group for both instances
+|    ├── terraform.tfvars.example  # Terraform values demo
+|    ├── variables.tf              
+|    └── vpc.tf                    # VPC configuration
 │
 ├── ansible/                      # Server configuration
 │   ├── inventory.ini             # EC2 IPs after terraform apply
@@ -69,6 +74,8 @@ automated-deployment-pipeline/
 │
 ├── jenkins/
 │   └── Jenkinsfile               # Pipeline definition (pipeline as code)
+|
+|── .gitignore                    
 │
 └── README.md
 ```

@@ -1,0 +1,5 @@
+instance_type     = "t3.small"
+own_ip            = ""
+key_pair_name     = ""
+k3s_instance_type = "t3.small"
+k3s_iam_role_name = "k3s-ec2-role"
