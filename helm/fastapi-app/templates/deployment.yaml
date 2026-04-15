@@ -17,6 +17,8 @@ spec:
         version: {{ .Values.image.tag | quote }}
         
     spec:
+      imagePullSecrets:
+        - name: ecr-pull-secret
       containers:
         - name: fastapi-container
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
